@@ -11,13 +11,13 @@ interface Params {
   inputFormats: string[];
   outputFormats: string[];
 
-  widths: number[];
-  enlarge: boolean;
+  widths?: number[];
+  enlarge?: boolean;
 
-  clear: boolean;
+  clear?: boolean;
 
-  verbose: boolean;
-  debug: boolean;
+  verbose?: boolean;
+  debug?: boolean;
 }
 
 const run = (params: Params): true | void => {
@@ -46,11 +46,11 @@ const run = (params: Params): true | void => {
       params.outputFormats = [params.outputFormats];
     }
 
-    if (!(params.widths instanceof Array)) {
+    if (params.widths && !(params.widths instanceof Array)) {
       params.widths = [params.widths];
     }
 
-    if (params.verbose)
+    if (params.verbose ?? true)
       console.log(chalk.cyan.bold("[INFOS]"), "All settings passed validation");
 
     if (params.debug)
@@ -64,7 +64,7 @@ const run = (params: Params): true | void => {
     deleteIfExists: boolean = false
   ) => {
     if (existsSync(directory) && deleteIfExists) {
-      if (params.verbose)
+      if (params.verbose ?? true)
         console.log(
           chalk.cyan.bold("[INFOS]"),
           "Deleting target folder: ",
@@ -79,7 +79,7 @@ const run = (params: Params): true | void => {
   const optimizeAllImages = () => {
     glob(params.source + "/**/*")
       .then((files) => {
-        if (params.verbose)
+        if (params.verbose ?? true)
           console.log(
             chalk.cyan.bold("[INFOS]"),
             "Found",
@@ -128,7 +128,7 @@ const run = (params: Params): true | void => {
     const fileRelativePath = imagePath.replace(params.source, "");
 
     if (fileExt === newFormat && !width) {
-      if (params.verbose)
+      if (params.verbose ?? true)
         console.log(
           chalk.cyan.bold("[INFOS]"),
           "Skipping image",
