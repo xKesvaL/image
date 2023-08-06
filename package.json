@@ -11,7 +11,12 @@
     "chalk": "^5.3.0",
     "commander": "^11.0.0",
     "figlet": "^1.6.0",
+    "glob": "^10.3.3",
     "sharp": "^0.32.4"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./cli": "./dist/cli.js"
   },
   "scripts": {
     "prepublishOnly": "npm run build",
@@ -19,12 +24,17 @@
   },
   "devDependencies": {
     "@types/figlet": "^1.5.6",
-    "@types/minimist": "^1.2.2",
     "@types/node": "^20.4.8",
     "typescript": "^5.1.6"
   },
   "bin": {
-    "image-opti": "bin/image-opti.js"
+    "image-opti": "dist/cli.js"
   },
-  "type": "module"
+  "type": "module",
+  "keywords": [
+    "cli",
+    "optimization",
+    "image",
+    "sharp"
+  ]
 }
