@@ -19,7 +19,6 @@
     "./cli": "./dist/cli.js"
   },
   "scripts": {
-    "prepublishOnly": "npm run build",
     "build": "tsc"
   },
   "devDependencies": {
