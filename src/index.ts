@@ -56,6 +56,9 @@ const run = (params: Params): true | void => {
     if (params.debug)
       console.log(chalk.yellow.bold("[DEBUG]"), "Params: ", params);
 
+    params.source = params.source.replace(/\\/g, "/");
+    params.target = params.target.replace(/\\/g, "/");
+
     return true;
   };
 
@@ -114,26 +117,25 @@ const run = (params: Params): true | void => {
     newFormat: string,
     width?: number
   ) => {
-    if (params.debug)
-      console.log(
-        chalk.yellow.bold("[DEBUG]"),
-        "Optimizing image:",
-        imagePath,
-        chalk.yellow.bold("->", newFormat),
-        width ?? ""
-      );
-
     const fileName = basename(imagePath).split(".")[0];
     const fileExt = basename(imagePath).split(".")[1];
     const fileRelativePath = imagePath.replace(params.source, "");
+    const stats = lstatSync(imagePath);
 
     if (fileExt === newFormat && !width) {
       if (params.verbose ?? true)
         console.log(
           chalk.cyan.bold("[INFOS]"),
-          "Skipping image",
+          "Skipping image:",
           imagePath,
-          "(correct format & size)"
+          "•",
+          chalk[
+            stats.size > 300000
+              ? "red"
+              : stats.size > 175000
+              ? "yellow"
+              : "green"
+          ](Math.round(stats.size / 1000) + "kb")
         );
       return;
     }
@@ -149,6 +151,30 @@ const run = (params: Params): true | void => {
           throw err;
         }
       });
+
+    const newStats = lstatSync(mountName());
+
+    if (params.verbose)
+      console.log(
+        chalk.cyan.bold("[INFOS]"),
+        "Optimized image:",
+        imagePath,
+        chalk.yellow.bold("->", newFormat),
+        "•",
+        width ? chalk.cyan(`${width}w`) : chalk.cyan("no-resize"),
+        "•",
+        chalk[
+          stats.size > 300000 ? "red" : stats.size > 175000 ? "yellow" : "green"
+        ](Math.round(stats.size / 1000) + "kb"),
+        chalk.yellow.bold("->"),
+        chalk[
+          newStats.size > 300000
+            ? "red"
+            : newStats.size > 175000
+            ? "yellow"
+            : "green"
+        ](Math.round(newStats.size / 1000) + "kb")
+      );
 
     function mountName() {
       let res = `${params.target}${dirname(fileRelativePath)}/${fileName}`;
