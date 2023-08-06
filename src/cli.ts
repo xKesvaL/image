@@ -42,7 +42,7 @@ const cli = () => {
       false
     )
     .option("-c, --clear", "Clear target folder before converting", false)
-    .option("-v, --verbose", "Show verbose output", true)
+    .option("-v, --verbose", "Show verbose output", false)
     .option("-d, --debug", "Show debug output", false)
     .addHelpText(
       "beforeAll",

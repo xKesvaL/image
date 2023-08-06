@@ -79,15 +79,15 @@ const run = (params: Params): true | void => {
     mkdirSync(directory, { recursive: true });
   };
 
-  const optimizeAllImages = () => {
-    glob(params.source + "/**/*")
+  const optimizeAllImages = async () => {
+    let totalImages = 0;
+
+    await glob(params.source + "/**/*")
       .then((files) => {
         if (params.verbose ?? true)
           console.log(
             chalk.cyan.bold("[INFOS]"),
-            "Found",
-            chalk.cyan.bold(files.length),
-            "images, optimizing..."
+            "Found images, optimizing..."
           );
 
         files.forEach((file) => {
@@ -103,6 +103,7 @@ const run = (params: Params): true | void => {
               } else {
                 optimizeImage(file, format);
               }
+              totalImages++;
             });
           }
         });
@@ -110,6 +111,13 @@ const run = (params: Params): true | void => {
       .catch((err) => {
         throw new Error(err);
       });
+
+    console.log(
+      chalk.cyan.bold("[INFOS]"),
+      "Optimized",
+      chalk.yellow.bold(totalImages),
+      "images"
+    );
   };
 
   const optimizeImage = (
