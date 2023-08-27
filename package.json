@@ -1,6 +1,6 @@
 {
   "name": "@kesval/image",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "A tool to convert and resize your images using Sharp.",
   "main": "dist/index.js",
   "author": "Jordan Abeddou <jabeddou@gmail.com> (https://kesval.com)",

@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import chalk from "chalk";
 import { glob } from "glob";
-import { existsSync, lstatSync, mkdirSync, rmdirSync } from "fs";
+import { Stats, existsSync, lstatSync, mkdirSync, rmdirSync } from "fs";
 import { basename, dirname, extname } from "path";
 
 interface Params {
@@ -120,18 +120,26 @@ const run = (params: Params): true | void => {
     );
   };
 
-  const optimizeImage = (
+  const optimizeImage = async (
     imagePath: string,
     newFormat: string,
     width?: number
   ) => {
     const fileName = basename(imagePath).split(".")[0];
     const fileExt = basename(imagePath).split(".")[1];
-    const fileRelativePath = imagePath.replace(params.source, "");
+    const fileRelativePath = imagePath.replace(
+      `${
+        params.source.endsWith("/")
+          ? params.source.replace("./", "").slice(0, -1)
+          : params.source.replace("./", "")
+      }\\`,
+      ""
+    );
+
     const stats = lstatSync(imagePath);
 
     if (fileExt === newFormat && !width) {
-      if (params.verbose ?? true)
+      if (params.verbose ?? true) {
         console.log(
           chalk.cyan.bold("[INFOS]"),
           "Skipping image:",
@@ -145,51 +153,56 @@ const run = (params: Params): true | void => {
               : "green"
           ](Math.round(stats.size / 1000) + "kb")
         );
+      }
       return;
     }
 
-    checkOutputFolder(
-      dirname(`${params.target}${dirname(fileRelativePath)}/${fileName}`)
-    );
+    checkOutputFolder(mountName(false));
 
-    sharp(imagePath)
+    await sharp(imagePath)
       .resize(width ?? null, null, { withoutEnlargement: !params.enlarge })
-      .toFile(mountName(), (err) => {
+      .toFile(mountName(), (err, info) => {
         if (err) {
           throw err;
         }
+
+        if (params.verbose) {
+          console.log(
+            chalk.cyan.bold("[INFOS]"),
+            "Optimized image:",
+            imagePath,
+            chalk.yellow.bold("->", newFormat),
+            "•",
+            width ? chalk.cyan(`${width}w`) : chalk.cyan("no-resize"),
+            "•",
+            chalk[
+              stats.size > 300000
+                ? "red"
+                : stats.size > 175000
+                ? "yellow"
+                : "green"
+            ](Math.round(stats.size / 1000) + "kb"),
+            chalk.yellow.bold("->"),
+            chalk[
+              info.size > 300000
+                ? "red"
+                : info.size > 175000
+                ? "yellow"
+                : "green"
+            ](Math.round(info.size / 1000) + "kb")
+          );
+        }
       });
 
-    const newStats = lstatSync(mountName());
-
-    if (params.verbose)
-      console.log(
-        chalk.cyan.bold("[INFOS]"),
-        "Optimized image:",
-        imagePath,
-        chalk.yellow.bold("->", newFormat),
-        "•",
-        width ? chalk.cyan(`${width}w`) : chalk.cyan("no-resize"),
-        "•",
-        chalk[
-          stats.size > 300000 ? "red" : stats.size > 175000 ? "yellow" : "green"
-        ](Math.round(stats.size / 1000) + "kb"),
-        chalk.yellow.bold("->"),
-        chalk[
-          newStats.size > 300000
-            ? "red"
-            : newStats.size > 175000
-            ? "yellow"
-            : "green"
-        ](Math.round(newStats.size / 1000) + "kb")
-      );
-
-    function mountName() {
-      let res = `${params.target}${dirname(fileRelativePath)}/${fileName}`;
-      if (width) {
+    function mountName(withFile = true) {
+      let res = `${params.target}${dirname(fileRelativePath).replace(
+        /\\/g,
+        "/"
+      )}${withFile ? `/${fileName}` : ""}`;
+      if (width && withFile) {
         res += `-${width}w`;
       }
-      res += `.${newFormat}`;
+      if (withFile) res += `.${newFormat}`;
 
       return res;
     }
